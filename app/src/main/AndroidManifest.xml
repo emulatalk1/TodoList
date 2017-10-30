@@ -18,6 +18,11 @@
         </activity>
 
         <activity android:name=".AddTaskActivity" />
+        
+        <provider
+            android:authorities="com.vnspectre.todolist"
+            android:name="com.vnspectre.todolist.data.TaskContentProvider"
+            android:exported="false"/>
     </application>
 
 </manifest>

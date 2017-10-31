@@ -53,7 +53,29 @@ public class TaskContentProvider extends ContentProvider {
     @Nullable
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
-        return null;
+
+        // Get access to the task database (to read only for query).
+        final SQLiteDatabase db = mTaskDbHelper.getReadableDatabase();
+
+        //identify the match for th tasks directory.
+        int match = mUriMatcher.match(uri);
+
+        Cursor retCursor;
+
+        switch (match) {
+            // Query for the tasks directory.
+            case TASKS:
+                retCursor = db.query(TABLE_NAME, projection, selection, selectionArgs,null, null, sortOrder);
+                break;
+
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+
+        // Set a notification URI on the Cursor and return that Cursor.
+        retCursor.setNotificationUri(getContext().getContentResolver(), uri);
+
+        return retCursor;
     }
 
     @Nullable

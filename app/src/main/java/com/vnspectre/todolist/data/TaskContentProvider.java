@@ -68,6 +68,20 @@ public class TaskContentProvider extends ContentProvider {
                 retCursor = db.query(TABLE_NAME, projection, selection, selectionArgs,null, null, sortOrder);
                 break;
 
+            // Add a case to query for a single row of data by ID
+            // Use selections and selectionArgs to filter for that ID
+            case TASK_WITH_ID:
+                // Get the id from the URI
+                String id = uri.getPathSegments().get(1);
+
+                // Selection is the _ID column = ?, and the Selection args = the row ID from the URI
+                String mSelection = "_id=?";
+                String[] mSelectionArgs = new String[]{id};
+
+                // Construct a query as you would normally, passing in the selection/args
+                retCursor =  db.query(TABLE_NAME, projection, mSelection, mSelectionArgs, null, null, sortOrder);
+                break;
+
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -120,7 +134,35 @@ public class TaskContentProvider extends ContentProvider {
 
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
-        return 0;
+
+        // Get access to the database and write URI matching code to recognize a single item.
+        final SQLiteDatabase db = mTaskDbHelper.getWritableDatabase();
+
+        // Keep track of the number of deleted tasks
+        int tasksDeleted;
+
+        int match = mUriMatcher.match(uri);
+
+        switch (match) {
+            // Handle the single item case, recognized by the ID included in the URI path.
+            case TASK_WITH_ID:
+                // Get the task ID from the URI path.
+                String id = uri.getPathSegments().get(1);
+
+                // Use selections/selectionArgs to filter for this ID.
+                tasksDeleted = db.delete(TABLE_NAME, "_ID = ?", new String[]{id});
+                break;
+
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+
+        if (tasksDeleted != 0) {
+            // A task was deleted, set notification
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return tasksDeleted;
     }
 
     @Override

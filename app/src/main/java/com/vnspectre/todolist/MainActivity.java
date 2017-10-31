@@ -4,6 +4,7 @@ package com.vnspectre.todolist;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.LoaderManager;
@@ -59,7 +60,20 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                // Implement swipe to delete.
+
+                // Retrieve the id of the task to delete.
+                int id = (int) viewHolder.itemView.getTag();
+
+                // Build appropriate uri with String row id appended.
+                String stringID = Integer.toString(id);
+                Uri uri = TaskContract.TaskEntry.CONTENT_URI;
+                uri = uri.buildUpon().appendPath(stringID).build();
+
+                // Delete a single row of data using a ContentResolver.
+                getContentResolver().delete(uri, null, null);
+
+                //Restart the loader to re-query for all tasks after a deletion.
+                getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
             }
         }).attachToRecyclerView(mRecyclerView);
 
